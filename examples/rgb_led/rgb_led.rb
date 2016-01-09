@@ -21,17 +21,12 @@ end
 loop do
   puts "DELAY: #{seconds = (delay / 1000.0)}"
   p 'red'
-  led.red
+  led.red = 255
   sleep(seconds)
-  led.blue
-  p 'blue'
+  led.blue = 255
+  p 'purple'
   sleep(seconds)
-  led.green
-  p 'green'
+  led.green = 255
+  p 'white'
   sleep(seconds)
 end
-#led.color(224, 27, 106)
-#sleep(1)
-#led.color(255, 149, 7)
-#sleep(1)
-#led.off

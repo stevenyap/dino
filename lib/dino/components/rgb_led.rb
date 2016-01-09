@@ -1,43 +1,50 @@
 module Dino
   module Components
     class RgbLed < BaseComponent
+      attr_reader :red, :blue, :green
+
       # options = {board: my_board, pins: {red: red_pin, green: green_pin, blue: blue_pin}
       def after_initialize(options={})
-        raise 'missing pins[:red] pin' unless self.pins[:red]
+        raise 'missing pins[:red] pin'   unless self.pins[:red]
         raise 'missing pins[:green] pin' unless self.pins[:green]
-        raise 'missing pins[:blue] pin' unless self.pins[:blue]
+        raise 'missing pins[:blue] pin'  unless self.pins[:blue]
 
         pins.each do |color, pin|
           set_pin_mode(pin, :out)
           analog_write(pin, Board::LOW)
         end
+
+        @red = @green = @blue = 0
       end
 
-      # Format: [R, G, B]
-      COLORS = {
-        red:     [255, 000, 000],
-        green:   [000, 255, 000],
-        blue:    [000, 000, 255],
-        cyan:    [000, 255, 255],
-        yellow:  [255, 255, 000],
-        magenta: [255, 000, 255],
-        white:   [255, 255, 255],
-        off:     [000, 000, 000]
-      }
-
-      COLORS.each_key do |color|
-        define_method(color) do
-          analog_write(pins[:red], COLORS[color][0])
-          analog_write(pins[:green], COLORS[color][1])
-          analog_write(pins[:blue], COLORS[color][2])
-        end 
-      end
-
-      def blinky
-        [:red, :green, :blue].cycle do |color|
-          self.send(color)
-          sleep(0.01)
+      [:red, :green, :blue].each do |primary|
+        define_method("#{primary}=") do |cycle|
+          raise 'Duty cycle must be between 0 to 255' unless cycle.between? 0, 255
+          instance_variable_set("@#{primary}", cycle)
+          write
         end
+      end
+
+      def rgb
+        { red: @red, green: @green, blue: @blue }
+      end
+
+      def rgb=(red: @red, green: @green, blue: @blue)
+        @red   = red
+        @green = green
+        @blue  = blue
+        write
+      end
+
+      def off
+        rgb = { red: 0, green: 0, blue: 0 }
+      end
+
+      def write
+        analog_write(pins[:red],   @red)
+        analog_write(pins[:green], @green)
+        analog_write(pins[:blue],  @blue)
+        rgb
       end
     end
   end
